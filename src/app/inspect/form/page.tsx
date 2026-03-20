@@ -64,6 +64,9 @@ function InspectionFormInner() {
   const [aiGrade, setAiGrade]               = useState<Grade | null>(null)
   const [aiDescription, setAiDescription]   = useState('')
   const [aiConfidence, setAiConfidence]     = useState<Confidence | null>(null)
+  const [aiDefects, setAiDefects]           = useState<string[]>([])
+  const [aiValueRetention, setAiValueRetention] = useState<number | null>(null)
+  const [aiDepreciationReason, setAiDepreciationReason] = useState('')
   const [aiLoading, setAiLoading]           = useState(false)
   const [aiError, setAiError]               = useState('')
   const [aiRan, setAiRan]                   = useState(false)     // has AI run at least once?
@@ -106,6 +109,9 @@ function InspectionFormInner() {
       setAiGrade(suggestedGrade)
       setAiDescription(data.description || '')
       setAiConfidence(data.confidence || 'medium')
+      setAiDefects(data.defects || [])
+      setAiValueRetention(typeof data.value_retention === 'number' ? data.value_retention : null)
+      setAiDepreciationReason(data.depreciation_reason || '')
       setAiRan(true)
       lastAnalysedCount.current = files.length
 
@@ -183,14 +189,15 @@ function InspectionFormInner() {
       }
 
       const { error: saveErr } = await supabase.from('inspections').insert([{
-        client_id:      selectedClient.id,
+        client_id:       selectedClient.id,
         tracking_number: trackingNumber,
         category,
         grade,
-        notes:          notes || null,
-        photos:         uploadedUrls,
-        worker_name:    workerName,
-        ai_description: aiDescription || null,
+        notes:           notes || null,
+        photos:          uploadedUrls,
+        worker_name:     workerName,
+        ai_description:  aiDescription || null,
+        value_retention: aiValueRetention ?? null,
       }])
       if (saveErr) throw saveErr
 
@@ -406,23 +413,77 @@ function InspectionFormInner() {
 
         {/* ── 5. AI Report (auto-shown after analysis) ── */}
         {(aiDescription || aiLoading) && (
-          <div>
-            <p className="text-zinc-400 text-xs uppercase tracking-widest mb-3 font-semibold flex items-center gap-2">
-              AI Condition Report
-              <span className="text-teal-500 text-[9px] font-bold bg-teal-500/10 border border-teal-500/30 px-1.5 py-0.5 rounded-full">
-                AI generated
-              </span>
-            </p>
+          <div className="flex flex-col gap-4">
+
+            {/* Value retention card */}
             {aiLoading ? (
-              <div className="h-20 bg-zinc-900 rounded-xl animate-pulse" />
-            ) : (
-              <textarea
-                value={aiDescription}
-                onChange={(e) => setAiDescription(e.target.value)}
-                rows={4}
-                className="w-full bg-zinc-900 border border-teal-500/30 rounded-xl px-4 py-3 text-zinc-200 text-sm focus:outline-none focus:border-teal-400 resize-none"
-              />
+              <div className="h-24 bg-zinc-900 rounded-xl animate-pulse" />
+            ) : aiValueRetention !== null && (
+              <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-zinc-400 text-xs uppercase tracking-widest font-semibold">
+                    Value retention
+                  </p>
+                  <span className={`text-xl font-extrabold ${
+                    aiValueRetention >= 80 ? 'text-green-400' :
+                    aiValueRetention >= 50 ? 'text-yellow-400' :
+                    aiValueRetention >= 20 ? 'text-orange-400' : 'text-red-400'
+                  }`}>
+                    {aiValueRetention}%
+                  </span>
+                </div>
+
+                {/* Progress bar */}
+                <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden mb-2">
+                  <div
+                    className={`h-full rounded-full transition-all duration-700 ${
+                      aiValueRetention >= 80 ? 'bg-green-400' :
+                      aiValueRetention >= 50 ? 'bg-yellow-400' :
+                      aiValueRetention >= 20 ? 'bg-orange-400' : 'bg-red-400'
+                    }`}
+                    style={{ width: `${aiValueRetention}%` }}
+                  />
+                </div>
+
+                <p className="text-zinc-500 text-xs">{aiDepreciationReason}</p>
+
+                {/* Defects list */}
+                {aiDefects.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-zinc-800">
+                    <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-1.5">Defects identified</p>
+                    <ul className="flex flex-col gap-1">
+                      {aiDefects.map((d, i) => (
+                        <li key={i} className="text-xs text-zinc-300 flex items-start gap-1.5">
+                          <span className="text-orange-400 mt-0.5">•</span>
+                          {d}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
             )}
+
+            {/* Description */}
+            <div>
+              <p className="text-zinc-400 text-xs uppercase tracking-widest mb-2 font-semibold flex items-center gap-2">
+                AI Condition Report
+                <span className="text-teal-500 text-[9px] font-bold bg-teal-500/10 border border-teal-500/30 px-1.5 py-0.5 rounded-full">
+                  AI generated
+                </span>
+              </p>
+              {aiLoading ? (
+                <div className="h-20 bg-zinc-900 rounded-xl animate-pulse" />
+              ) : (
+                <textarea
+                  value={aiDescription}
+                  onChange={(e) => setAiDescription(e.target.value)}
+                  rows={4}
+                  className="w-full bg-zinc-900 border border-teal-500/30 rounded-xl px-4 py-3 text-zinc-200 text-sm focus:outline-none focus:border-teal-400 resize-none"
+                />
+              )}
+            </div>
+
           </div>
         )}
 

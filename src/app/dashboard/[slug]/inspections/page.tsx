@@ -18,6 +18,7 @@ type Inspection = {
   client_action: string | null
   return_address: string | null
   action_note: string | null
+  value_retention: number | null
 }
 
 type ActionModalData = {
@@ -271,6 +272,7 @@ export default function InspectionsPage() {
                   <th className="text-left px-5 py-3 font-semibold">Tracking #</th>
                   <th className="text-left px-5 py-3 font-semibold">Category</th>
                   <th className="text-left px-5 py-3 font-semibold">Grade</th>
+                  <th className="text-left px-5 py-3 font-semibold">Value</th>
                   <th className="text-left px-5 py-3 font-semibold">Photos</th>
                   <th className="text-left px-5 py-3 font-semibold">Your decision</th>
                   <th className="px-5 py-3"></th>
@@ -292,6 +294,31 @@ export default function InspectionsPage() {
                       <span className={`text-xs font-bold px-2 py-1 rounded ${GRADE_BG[item.grade]}`}>
                         {item.grade}
                       </span>
+                    </td>
+                    <td className="px-5 py-3">
+                      {item.value_retention !== null && item.value_retention !== undefined ? (
+                        <div className="flex items-center gap-2 min-w-[80px]">
+                          <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${
+                                item.value_retention >= 80 ? 'bg-green-400' :
+                                item.value_retention >= 50 ? 'bg-yellow-400' :
+                                item.value_retention >= 20 ? 'bg-orange-400' : 'bg-red-400'
+                              }`}
+                              style={{ width: `${item.value_retention}%` }}
+                            />
+                          </div>
+                          <span className={`text-xs font-bold ${
+                            item.value_retention >= 80 ? 'text-green-600' :
+                            item.value_retention >= 50 ? 'text-yellow-600' :
+                            item.value_retention >= 20 ? 'text-orange-600' : 'text-red-600'
+                          }`}>
+                            {item.value_retention}%
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-300 text-xs">—</span>
+                      )}
                     </td>
                     <td className="px-5 py-3">
                       {item.photos && item.photos.length > 0 ? (
