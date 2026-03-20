@@ -107,6 +107,8 @@ export default function InspectionsPage() {
   const [page, setPage] = useState(0)
   const [lightbox, setLightbox] = useState<{ photos: string[]; idx: number } | null>(null)
   const [pdfLoading, setPdfLoading] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const [modal, setModal] = useState<ActionModalData | null>(null)
   const [saving, setSaving] = useState(false)
   const PAGE_SIZE = 20
@@ -149,6 +151,14 @@ export default function InspectionsPage() {
   }, [clientId, dateFilter, gradeFilter, search, actionFilter])
 
   useEffect(() => { load() }, [load])
+
+  async function deleteInspection(id: string) {
+    setDeleting(true)
+    await supabase.from('inspections').delete().eq('id', id)
+    setDeleting(false)
+    setDeleteConfirm(null)
+    load()
+  }
 
   function openModal(inspection: Inspection) {
     setModal({
@@ -365,6 +375,13 @@ export default function InspectionsPage() {
                             ? <span className="w-3 h-3 border border-gray-300 border-t-[#E8512A] rounded-full animate-spin inline-block" />
                             : '↓ PDF'}
                         </button>
+                        <button
+                          onClick={() => setDeleteConfirm(item.id)}
+                          className="text-xs text-gray-300 hover:text-red-500 transition-colors"
+                          title="Delete inspection"
+                        >
+                          🗑
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -485,6 +502,31 @@ export default function InspectionsPage() {
                 className="flex-1 h-11 rounded-xl bg-[#E8512A] text-white text-sm font-bold hover:bg-[#d4471f] transition-colors disabled:opacity-40"
               >
                 {saving ? 'Saving...' : 'Confirm decision →'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirm modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setDeleteConfirm(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6" onClick={e => e.stopPropagation()}>
+            <p className="text-lg font-bold text-[#1A1A1A] mb-2">Delete inspection?</p>
+            <p className="text-sm text-gray-500 mb-6">This action cannot be undone. The inspection and all associated photos will be permanently removed.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 h-11 rounded-xl border border-gray-200 text-sm text-gray-500 hover:border-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteInspection(deleteConfirm)}
+                disabled={deleting}
+                className="flex-1 h-11 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-colors disabled:opacity-50"
+              >
+                {deleting ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
