@@ -19,6 +19,8 @@ type Inspection = {
   return_address: string | null
   action_note: string | null
   value_retention: number | null
+  retail_price_eur: number | null
+  resale_price_eur: number | null
 }
 
 type ActionModalData = {
