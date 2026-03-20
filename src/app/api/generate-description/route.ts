@@ -39,23 +39,20 @@ STEP 2 — Assess condition:
   C = Damaged — visible tears/breaks/heavy soiling, needs repair or steep discount
   D = Dispose — beyond repair, not resellable
 
-STEP 3 — Estimate individual market value:
-- Look at the specific product: its brand, model, current demand, typical secondhand market prices in Europe (Vinted, Zalando Lounge, BackMarket, StockX, Vestiaire Collective etc.)
-- Estimate retail_price_eur: what this exact product costs NEW in European retail today
-- Estimate resale_price_eur: realistic current resale price in THIS condition on European secondhand market
-- Both must be realistic integers in EUR — not generic ranges, but your best individual estimate for this specific item
+STEP 3 — Estimate price reduction needed to sell:
+- Based on the defects and condition, estimate by how many percent the seller needs to reduce the original price to still sell this item on the secondhand market
+- Think practically: what discount would a buyer expect given what you see?
+- Grade A: 0–10% reduction, Grade B: 15–35%, Grade C: 40–65%, Grade D: 70–100%
+- Give a specific number, not a range
 
 Required JSON keys:
 - "grade": "A", "B", "C", or "D"
-- "product_name": identified product name (e.g. "Nike Air Max 90 White/Grey UK8", "Levi's 501 W32/L30 Indigo", "Apple Watch Series 8 45mm Midnight")
-- "product_identified": true or false — were you able to identify the brand/model?
+- "product_name": identified product name (e.g. "Nike Air Max 90 White/Grey UK8", "Levi's 501 W32/L30 Indigo"). If unclear, describe type.
 - "condition_summary": one sentence — overall condition
 - "defects": array of strings — each visible defect precisely described (empty array if none)
 - "resale_recommendation": one sentence — concrete action (e.g. "Ready for immediate resale", "Light cleaning recommended before listing")
-- "retail_price_eur": integer — estimated new retail price in EUR for this specific product
-- "resale_price_eur": integer — estimated realistic resale price in EUR in current condition
-- "value_retention": integer 0–100 — percentage of retail value retained (resale_price_eur / retail_price_eur * 100)
-- "depreciation_reason": short phrase — main driver of value loss (or "No depreciation — as new" for grade A)
+- "price_reduction_pct": integer 0–100 — estimated % price reduction needed to sell vs original price
+- "reduction_reason": short phrase — why this discount is needed (or "No discount needed" for grade A)
 - "confidence": "high", "medium", or "low"
 
 Category hint: ${category || 'unknown'}
@@ -102,24 +99,20 @@ Output only valid JSON.`
         description += ` ${parsed.resale_recommendation}`
       }
 
-      const retailPrice  = typeof parsed.retail_price_eur  === 'number' ? Math.round(parsed.retail_price_eur)  : null
-      const resalePrice  = typeof parsed.resale_price_eur  === 'number' ? Math.round(parsed.resale_price_eur)  : null
-      const valueRetention = retailPrice && resalePrice
-        ? Math.round((resalePrice / retailPrice) * 100)
-        : (typeof parsed.value_retention === 'number' ? Math.round(parsed.value_retention) : null)
+      const priceReduction = typeof parsed.price_reduction_pct === 'number'
+        ? Math.min(100, Math.max(0, Math.round(parsed.price_reduction_pct)))
+        : null
 
       return NextResponse.json({
         grade,
         description,
         product_name: parsed.product_name ?? null,
-        product_identified: parsed.product_identified ?? false,
         condition_summary: parsed.condition_summary ?? '',
         defects,
         resale_recommendation: parsed.resale_recommendation ?? '',
-        retail_price_eur: retailPrice,
-        resale_price_eur: resalePrice,
-        value_retention: valueRetention,
-        depreciation_reason: parsed.depreciation_reason ?? '',
+        price_reduction_pct: priceReduction,
+        reduction_reason: parsed.reduction_reason ?? '',
+        value_retention: priceReduction !== null ? 100 - priceReduction : null,
         confidence: parsed.confidence ?? 'medium',
       })
     }
@@ -148,10 +141,9 @@ Be factual and professional. In English.`,
       grade: fallbackGrade,
       description: text,
       defects: [],
-      retail_price_eur: null,
-      resale_price_eur: null,
+      price_reduction_pct: null,
+      reduction_reason: '',
       value_retention: null,
-      depreciation_reason: '',
       confidence: 'low',
     })
 

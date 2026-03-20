@@ -23,17 +23,10 @@ const GRADE_COLORS: Record<string, [number, number, number]> = {
 }
 
 const GRADE_LABELS: Record<string, string> = {
-  A: 'A — As new',
-  B: 'B — Minor defect',
-  C: 'C — Damaged',
-  D: 'D — Dispose',
-}
-
-function retentionColor(pct: number): [number, number, number] {
-  if (pct >= 80) return [22, 163, 74]   // green
-  if (pct >= 50) return [202, 138, 4]   // yellow
-  if (pct >= 20) return [234, 88, 12]   // orange
-  return [220, 38, 38]                   // red
+  A: 'Grade A — As new',
+  B: 'Grade B — Minor defect',
+  C: 'Grade C — Damaged',
+  D: 'Grade D — Dispose',
 }
 
 async function loadImageAsBase64(url: string): Promise<string | null> {
@@ -57,279 +50,240 @@ export async function generateInspectionPDF(
 ): Promise<void> {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const W = 210
-  const margin = 18
+  const M = 20       // margin
+  const CW = W - M * 2  // content width
   let y = 0
 
-  // ── Header bar ──────────────────────────────────────────────────────────────
+  // ── Header ──────────────────────────────────────────────────────────────────
   doc.setFillColor(232, 81, 42)
-  doc.rect(0, 0, W, 28, 'F')
+  doc.rect(0, 0, W, 24, 'F')
 
   doc.setTextColor(255, 255, 255)
-  doc.setFontSize(22)
+  doc.setFontSize(18)
   doc.setFont('helvetica', 'bold')
-  doc.text('Recovo', margin, 17)
+  doc.text('Recovo', M, 15)
 
-  doc.setFontSize(8)
-  doc.setFont('helvetica', 'normal')
-  doc.text('Returns recovered. Value restored.', margin, 23)
-
-  doc.setFontSize(9)
-  doc.setFont('helvetica', 'bold')
-  doc.text('INSPECTION REPORT', W - margin, 13, { align: 'right' })
-  doc.setFont('helvetica', 'normal')
   doc.setFontSize(7.5)
+  doc.setFont('helvetica', 'normal')
+  doc.text('INSPECTION REPORT', W - M, 10, { align: 'right' })
   doc.text(
     new Date(item.created_at).toLocaleDateString('en-GB', {
       day: 'numeric', month: 'long', year: 'numeric',
-      hour: '2-digit', minute: '2-digit',
     }),
-    W - margin, 20, { align: 'right' }
+    W - M, 16, { align: 'right' }
   )
 
-  y = 38
+  y = 34
 
-  // ── Tracking + grade badge ───────────────────────────────────────────────
-  doc.setTextColor(100, 100, 100)
-  doc.setFontSize(8)
+  // ── Tracking number ──────────────────────────────────────────────────────────
+  doc.setTextColor(150, 150, 150)
+  doc.setFontSize(7.5)
   doc.setFont('helvetica', 'normal')
-  doc.text('TRACKING NUMBER', margin, y)
-  y += 5
+  doc.text('TRACKING NUMBER', M, y)
+
   doc.setTextColor(26, 26, 26)
-  doc.setFontSize(16)
+  doc.setFontSize(15)
   doc.setFont('helvetica', 'bold')
-  doc.text(item.tracking_number, margin, y)
+  doc.text(item.tracking_number, M, y + 6)
 
+  // Grade pill — right aligned, same row
   const gradeColor = GRADE_COLORS[item.grade] ?? [100, 100, 100]
+  const gradeLabel = GRADE_LABELS[item.grade] ?? item.grade
+  const pillW = 52
+  const pillH = 10
+  const pillX = W - M - pillW
   doc.setFillColor(...gradeColor)
-  doc.roundedRect(W - margin - 42, y - 14, 42, 16, 3, 3, 'F')
+  doc.roundedRect(pillX, y - 1, pillW, pillH, 2, 2, 'F')
   doc.setTextColor(255, 255, 255)
-  doc.setFontSize(13)
+  doc.setFontSize(8.5)
   doc.setFont('helvetica', 'bold')
-  doc.text(GRADE_LABELS[item.grade] ?? item.grade, W - margin - 21, y - 3, { align: 'center' })
+  doc.text(gradeLabel, pillX + pillW / 2, y + 5.5, { align: 'center' })
 
-  y += 10
+  y += 14
 
-  doc.setDrawColor(230, 230, 230)
+  // Divider
+  doc.setDrawColor(220, 220, 220)
   doc.setLineWidth(0.3)
-  doc.line(margin, y, W - margin, y)
+  doc.line(M, y, W - M, y)
   y += 8
 
-  // ── Info grid ────────────────────────────────────────────────────────────
-  const col2 = W / 2 + 4
+  // ── Info row ─────────────────────────────────────────────────────────────────
+  // 4 columns equally spaced
+  const cols = [M, M + CW * 0.25, M + CW * 0.5, M + CW * 0.75]
+  const fields = [
+    { label: 'CLIENT',   value: clientName },
+    { label: 'CATEGORY', value: item.category },
+    { label: 'WORKER',   value: item.worker_name ?? '—' },
+    { label: 'DATE',     value: new Date(item.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) },
+  ]
 
-  function infoField(label: string, value: string, x: number, yPos: number) {
-    doc.setTextColor(130, 130, 130)
-    doc.setFontSize(7.5)
+  fields.forEach((f, i) => {
+    doc.setTextColor(150, 150, 150)
+    doc.setFontSize(7)
     doc.setFont('helvetica', 'normal')
-    doc.text(label, x, yPos)
+    doc.text(f.label, cols[i], y)
     doc.setTextColor(26, 26, 26)
-    doc.setFontSize(10)
+    doc.setFontSize(9.5)
     doc.setFont('helvetica', 'bold')
-    doc.text(value || '—', x, yPos + 5)
-  }
+    doc.text(f.value, cols[i], y + 5)
+  })
 
-  infoField('CLIENT', clientName, margin, y)
-  infoField('CATEGORY', item.category, col2, y)
   y += 14
 
-  infoField('WORKER', item.worker_name ?? '—', margin, y)
-  infoField('DATE', new Date(item.created_at).toLocaleDateString('en-GB', {
-    day: 'numeric', month: 'short', year: 'numeric',
-  }), col2, y)
-  y += 14
-
-  doc.setDrawColor(230, 230, 230)
-  doc.line(margin, y, W - margin, y)
+  // Divider
+  doc.setDrawColor(220, 220, 220)
+  doc.line(M, y, W - M, y)
   y += 8
 
-  // ── Value Analysis ────────────────────────────────────────────────────────
-  const hasValue = item.value_retention !== null ||
-    (item.retail_price_eur !== null && item.resale_price_eur !== null)
+  // ── Price reduction box ──────────────────────────────────────────────────────
+  if (item.value_retention !== null) {
+    const reduction = 100 - item.value_retention
+    const boxH = 22
 
-  if (hasValue) {
-    doc.setTextColor(130, 130, 130)
-    doc.setFontSize(7.5)
-    doc.setFont('helvetica', 'normal')
-    doc.text('VALUE ANALYSIS', margin, y)
-    y += 6
-
-    // Light background box
+    // Background
     doc.setFillColor(250, 250, 250)
-    doc.setDrawColor(230, 230, 230)
+    doc.setDrawColor(220, 220, 220)
     doc.setLineWidth(0.3)
-    doc.roundedRect(margin, y, W - margin * 2, 28, 3, 3, 'FD')
+    doc.roundedRect(M, y, CW, boxH, 2, 2, 'FD')
 
-    const boxY = y + 7
-    const third = (W - margin * 2) / 3
-    const c1 = margin + third * 0.5
-    const c2 = margin + third * 1.5
-    const c3 = margin + third * 2.5
+    // Left: label
+    doc.setTextColor(150, 150, 150)
+    doc.setFontSize(7)
+    doc.setFont('helvetica', 'normal')
+    doc.text('ESTIMATED PRICE REDUCTION TO SELL', M + 5, y + 7)
 
-    if (item.retail_price_eur !== null && item.resale_price_eur !== null) {
-      const loss = item.retail_price_eur - item.resale_price_eur
+    // Big number
+    const [r, g, b] = reduction <= 10
+      ? [22, 163, 74]
+      : reduction <= 35
+      ? [202, 138, 4]
+      : reduction <= 65
+      ? [234, 88, 12]
+      : [220, 38, 38]
 
-      // New retail
-      doc.setTextColor(130, 130, 130)
-      doc.setFontSize(7)
-      doc.setFont('helvetica', 'normal')
-      doc.text('NEW RETAIL', c1, boxY - 2, { align: 'center' })
-      doc.setTextColor(26, 26, 26)
-      doc.setFontSize(13)
-      doc.setFont('helvetica', 'bold')
-      doc.text(`€${item.retail_price_eur}`, c1, boxY + 5, { align: 'center' })
+    doc.setTextColor(r, g, b)
+    doc.setFontSize(20)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`-${reduction}%`, M + 5, y + 17)
 
-      // Arrow
-      doc.setTextColor(180, 180, 180)
-      doc.setFontSize(14)
-      doc.text('→', margin + third, boxY + 4, { align: 'center' })
+    // Progress bar (right side)
+    const barX = M + 55
+    const barW = CW - 60
+    const barY = y + 10
+    const barH2 = 4
 
-      // Resale value
-      const rc = retentionColor(item.value_retention ?? 50)
-      doc.setTextColor(130, 130, 130)
-      doc.setFontSize(7)
-      doc.setFont('helvetica', 'normal')
-      doc.text('EST. RESALE', c2, boxY - 2, { align: 'center' })
-      doc.setTextColor(...rc)
-      doc.setFontSize(13)
-      doc.setFont('helvetica', 'bold')
-      doc.text(`€${item.resale_price_eur}`, c2, boxY + 5, { align: 'center' })
+    doc.setFillColor(220, 220, 220)
+    doc.roundedRect(barX, barY, barW, barH2, 2, 2, 'F')
 
-      // Value loss
-      doc.setTextColor(130, 130, 130)
-      doc.setFontSize(7)
-      doc.setFont('helvetica', 'normal')
-      doc.text('VALUE LOSS', c3, boxY - 2, { align: 'center' })
-      doc.setTextColor(220, 38, 38)
-      doc.setFontSize(13)
-      doc.setFont('helvetica', 'bold')
-      doc.text(`-€${loss}`, c3, boxY + 5, { align: 'center' })
+    // Fill = value retained (green portion)
+    const fillW = Math.max(4, (item.value_retention / 100) * barW)
+    doc.setFillColor(r, g, b)
+    doc.roundedRect(barX, barY, fillW, barH2, 2, 2, 'F')
 
-      // Retention pct below
-      if (item.value_retention !== null) {
-        doc.setTextColor(130, 130, 130)
-        doc.setFontSize(7)
-        doc.setFont('helvetica', 'normal')
-        doc.text(`${item.value_retention}% of original value retained`, c2, boxY + 13, { align: 'center' })
-      }
+    // Labels under bar
+    doc.setTextColor(150, 150, 150)
+    doc.setFontSize(6.5)
+    doc.setFont('helvetica', 'normal')
+    doc.text('0%', barX, barY + 8)
+    doc.text('100%', barX + barW, barY + 8, { align: 'right' })
+    doc.setTextColor(r, g, b)
+    doc.setFontSize(7)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`${item.value_retention}% value retained`, barX + barW / 2, barY + 8, { align: 'center' })
 
-    } else if (item.value_retention !== null) {
-      // Only percentage available
-      doc.setTextColor(26, 26, 26)
-      doc.setFontSize(12)
-      doc.setFont('helvetica', 'bold')
-      doc.text(`Value retention: ${item.value_retention}%`, margin + 6, boxY + 4)
-    }
-
-    y += 36
-
-    // Retention progress bar
-    if (item.value_retention !== null) {
-      const barW = W - margin * 2
-      const barH = 3.5
-
-      // Background
-      doc.setFillColor(230, 230, 230)
-      doc.roundedRect(margin, y, barW, barH, 1.5, 1.5, 'F')
-
-      // Fill
-      const rc = retentionColor(item.value_retention)
-      doc.setFillColor(...rc)
-      const fillW = Math.max(4, (item.value_retention / 100) * barW)
-      doc.roundedRect(margin, y, fillW, barH, 1.5, 1.5, 'F')
-
-      y += 9
-    }
-
-    doc.setDrawColor(230, 230, 230)
-    doc.line(margin, y, W - margin, y)
-    y += 8
+    y += boxH + 8
   }
 
-  // ── AI Condition Report ───────────────────────────────────────────────────
+  // ── AI Condition Report ───────────────────────────────────────────────────────
   if (item.ai_description) {
-    doc.setTextColor(130, 130, 130)
-    doc.setFontSize(7.5)
+    doc.setTextColor(150, 150, 150)
+    doc.setFontSize(7)
     doc.setFont('helvetica', 'normal')
-    doc.text('AI CONDITION REPORT', margin, y)
+    doc.text('AI CONDITION REPORT', M, y)
     y += 5
 
     doc.setTextColor(26, 26, 26)
-    doc.setFontSize(10)
+    doc.setFontSize(9.5)
     doc.setFont('helvetica', 'normal')
-    const lines = doc.splitTextToSize(item.ai_description, W - margin * 2)
-    doc.text(lines, margin, y)
-    y += lines.length * 5 + 6
+    const lines = doc.splitTextToSize(item.ai_description, CW)
+    doc.text(lines, M, y)
+    y += lines.length * 4.8 + 7
   }
 
-  // ── Worker Notes ──────────────────────────────────────────────────────────
+  // ── Worker Notes ──────────────────────────────────────────────────────────────
   if (item.notes) {
-    doc.setTextColor(130, 130, 130)
-    doc.setFontSize(7.5)
+    doc.setTextColor(150, 150, 150)
+    doc.setFontSize(7)
     doc.setFont('helvetica', 'normal')
-    doc.text('WORKER NOTES', margin, y)
+    doc.text('WORKER NOTES', M, y)
     y += 5
 
     doc.setTextColor(26, 26, 26)
-    doc.setFontSize(10)
+    doc.setFontSize(9.5)
     doc.setFont('helvetica', 'normal')
-    const lines = doc.splitTextToSize(item.notes, W - margin * 2)
-    doc.text(lines, margin, y)
-    y += lines.length * 5 + 6
+    const lines = doc.splitTextToSize(item.notes, CW)
+    doc.text(lines, M, y)
+    y += lines.length * 4.8 + 7
   }
 
-  // ── Photos ────────────────────────────────────────────────────────────────
+  // ── Photos ────────────────────────────────────────────────────────────────────
   if (item.photos && item.photos.length > 0) {
-    doc.setDrawColor(230, 230, 230)
-    doc.line(margin, y, W - margin, y)
-    y += 8
-
-    doc.setTextColor(130, 130, 130)
-    doc.setFontSize(7.5)
-    doc.setFont('helvetica', 'normal')
-    doc.text(`PHOTOS (${item.photos.length})`, margin, y)
+    doc.setDrawColor(220, 220, 220)
+    doc.line(M, y, W - M, y)
     y += 6
 
-    const photoSize = 52
+    doc.setTextColor(150, 150, 150)
+    doc.setFontSize(7)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`PHOTOS (${Math.min(item.photos.length, 6)})`, M, y)
+    y += 6
+
+    const photoSize = 50
     const gap = 5
-    const photosPerRow = 3
-    let px = margin
-    let photoCount = 0
+    const perRow = 3
+    let col = 0
 
     for (const photoUrl of item.photos.slice(0, 6)) {
       const b64 = await loadImageAsBase64(photoUrl)
-      if (b64) {
-        if (photoCount > 0 && photoCount % photosPerRow === 0) {
-          y += photoSize + gap
-          px = margin
-        }
-        if (y + photoSize > 270) {
-          doc.addPage()
-          y = 20
-          px = margin
-        }
-        try {
-          doc.addImage(b64, 'JPEG', px, y, photoSize, photoSize)
-        } catch { /* skip */ }
-        px += photoSize + gap
-        photoCount++
+      if (!b64) continue
+
+      const px = M + col * (photoSize + gap)
+
+      if (y + photoSize > 272) {
+        doc.addPage()
+        y = 20
+      }
+
+      try {
+        doc.addImage(b64, 'JPEG', px, y, photoSize, photoSize)
+      } catch { /* skip */ }
+
+      col++
+      if (col >= perRow) {
+        col = 0
+        y += photoSize + gap
       }
     }
 
-    if (photoCount > 0) y += photoSize + 8
+    if (col > 0) y += photoSize + gap
+    y += 4
   }
 
-  // ── Footer ────────────────────────────────────────────────────────────────
+  // ── Footer ────────────────────────────────────────────────────────────────────
   const pageCount = doc.getNumberOfPages()
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i)
-    doc.setDrawColor(230, 230, 230)
+    doc.setDrawColor(220, 220, 220)
     doc.setLineWidth(0.3)
-    doc.line(margin, 285, W - margin, 285)
-    doc.setTextColor(160, 160, 160)
-    doc.setFontSize(7)
+    doc.line(M, 284, W - M, 284)
+    doc.setTextColor(170, 170, 170)
+    doc.setFontSize(6.5)
     doc.setFont('helvetica', 'normal')
-    doc.text('Recovo Sp. z o.o. · Laurowa 19b, Wysogotowo, 62-081 Przeźmierowo, Poland · hello@recovo.com', W / 2, 290, { align: 'center' })
-    doc.text(`Page ${i} of ${pageCount}`, W - margin, 290, { align: 'right' })
+    doc.text(
+      'Recovo Sp. z o.o. · Laurowa 19b, Wysogotowo, 62-081 Przeźmierowo · hello@recovo.com',
+      W / 2, 289, { align: 'center' }
+    )
+    doc.text(`Page ${i} / ${pageCount}`, W - M, 289, { align: 'right' })
   }
 
   doc.save(`recovo-${item.tracking_number}.pdf`)

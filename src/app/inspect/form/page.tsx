@@ -65,11 +65,10 @@ function InspectionFormInner() {
   const [aiDescription, setAiDescription]   = useState('')
   const [aiConfidence, setAiConfidence]     = useState<Confidence | null>(null)
   const [aiDefects, setAiDefects]               = useState<string[]>([])
-  const [aiValueRetention, setAiValueRetention] = useState<number | null>(null)
-  const [aiDepreciationReason, setAiDepreciationReason] = useState('')
-  const [aiProductName, setAiProductName]       = useState('')
-  const [aiRetailPrice, setAiRetailPrice]       = useState<number | null>(null)
-  const [aiResalePrice, setAiResalePrice]       = useState<number | null>(null)
+  const [aiValueRetention, setAiValueRetention]   = useState<number | null>(null)
+  const [aiReductionReason, setAiReductionReason] = useState('')
+  const [aiProductName, setAiProductName]         = useState('')
+  const [aiPriceReduction, setAiPriceReduction]   = useState<number | null>(null)
   const [aiLoading, setAiLoading]           = useState(false)
   const [aiError, setAiError]               = useState('')
   const [aiRan, setAiRan]                   = useState(false)     // has AI run at least once?
@@ -114,10 +113,9 @@ function InspectionFormInner() {
       setAiConfidence(data.confidence || 'medium')
       setAiDefects(data.defects || [])
       setAiValueRetention(typeof data.value_retention === 'number' ? data.value_retention : null)
-      setAiDepreciationReason(data.depreciation_reason || '')
+      setAiReductionReason(data.reduction_reason || '')
       setAiProductName(data.product_name || '')
-      setAiRetailPrice(typeof data.retail_price_eur === 'number' ? data.retail_price_eur : null)
-      setAiResalePrice(typeof data.resale_price_eur === 'number' ? data.resale_price_eur : null)
+      setAiPriceReduction(typeof data.price_reduction_pct === 'number' ? data.price_reduction_pct : null)
       setAiRan(true)
       lastAnalysedCount.current = files.length
 
@@ -202,10 +200,8 @@ function InspectionFormInner() {
         notes:           notes || null,
         photos:          uploadedUrls,
         worker_name:     workerName,
-        ai_description:   aiDescription || null,
-        value_retention:  aiValueRetention ?? null,
-        retail_price_eur: aiRetailPrice ?? null,
-        resale_price_eur: aiResalePrice ?? null,
+        ai_description:  aiDescription || null,
+        value_retention: aiValueRetention ?? null,
       }])
       if (saveErr) throw saveErr
 
@@ -423,66 +419,46 @@ function InspectionFormInner() {
         {(aiDescription || aiLoading) && (
           <div className="flex flex-col gap-4">
 
-            {/* Value estimate card */}
+            {/* Price reduction card */}
             {aiLoading ? (
-              <div className="h-28 bg-zinc-900 rounded-xl animate-pulse" />
-            ) : (aiRetailPrice || aiValueRetention !== null) && (
+              <div className="h-24 bg-zinc-900 rounded-xl animate-pulse" />
+            ) : aiPriceReduction !== null && (
               <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-4">
-
-                {/* Product name */}
                 {aiProductName && (
                   <p className="text-white text-sm font-semibold mb-3">{aiProductName}</p>
                 )}
 
-                {/* Price comparison */}
-                {aiRetailPrice && aiResalePrice ? (
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="flex-1 text-center">
-                      <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-0.5">New retail</p>
-                      <p className="text-zinc-400 text-lg font-bold">€{aiRetailPrice}</p>
-                    </div>
-                    <div className="text-zinc-600 text-lg">→</div>
-                    <div className="flex-1 text-center">
-                      <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-0.5">Est. resale</p>
-                      <p className={`text-lg font-extrabold ${
-                        aiValueRetention !== null && aiValueRetention >= 80 ? 'text-green-400' :
-                        aiValueRetention !== null && aiValueRetention >= 50 ? 'text-yellow-400' :
-                        aiValueRetention !== null && aiValueRetention >= 20 ? 'text-orange-400' : 'text-red-400'
-                      }`}>€{aiResalePrice}</p>
-                    </div>
-                    <div className="flex-1 text-center">
-                      <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-0.5">Loss</p>
-                      <p className="text-red-400 text-lg font-bold">-€{aiRetailPrice - aiResalePrice}</p>
-                    </div>
-                  </div>
-                ) : null}
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-zinc-400 text-xs uppercase tracking-widest font-semibold">Price reduction to sell</p>
+                  <span className={`text-2xl font-extrabold ${
+                    aiPriceReduction <= 10 ? 'text-green-400' :
+                    aiPriceReduction <= 35 ? 'text-yellow-400' :
+                    aiPriceReduction <= 65 ? 'text-orange-400' : 'text-red-400'
+                  }`}>-{aiPriceReduction}%</span>
+                </div>
 
-                {/* Progress bar */}
-                {aiValueRetention !== null && (
-                  <>
-                    <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden mb-1.5">
-                      <div
-                        className={`h-full rounded-full transition-all duration-700 ${
-                          aiValueRetention >= 80 ? 'bg-green-400' :
-                          aiValueRetention >= 50 ? 'bg-yellow-400' :
-                          aiValueRetention >= 20 ? 'bg-orange-400' : 'bg-red-400'
-                        }`}
-                        style={{ width: `${aiValueRetention}%` }}
-                      />
-                    </div>
-                    <p className="text-zinc-500 text-xs mb-1">{aiValueRetention}% value retained · {aiDepreciationReason}</p>
-                  </>
+                <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden mb-2">
+                  <div
+                    className={`h-full rounded-full transition-all duration-700 ${
+                      aiPriceReduction <= 10 ? 'bg-green-400' :
+                      aiPriceReduction <= 35 ? 'bg-yellow-400' :
+                      aiPriceReduction <= 65 ? 'bg-orange-400' : 'bg-red-400'
+                    }`}
+                    style={{ width: `${aiPriceReduction}%` }}
+                  />
+                </div>
+
+                {aiReductionReason && (
+                  <p className="text-zinc-500 text-xs">{aiReductionReason}</p>
                 )}
 
-                {/* Defects list */}
                 {aiDefects.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-zinc-800">
                     <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-1.5">Defects identified</p>
                     <ul className="flex flex-col gap-1">
                       {aiDefects.map((d, i) => (
                         <li key={i} className="text-xs text-zinc-300 flex items-start gap-1.5">
-                          <span className="text-orange-400 mt-0.5">•</span>
-                          {d}
+                          <span className="text-orange-400 mt-0.5">•</span>{d}
                         </li>
                       ))}
                     </ul>
