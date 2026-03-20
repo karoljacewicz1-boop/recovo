@@ -10,13 +10,16 @@ type Inspection = {
   ai_description: string | null
   created_at: string
   worker_name: string | null
+  value_retention: number | null
+  retail_price_eur: number | null
+  resale_price_eur: number | null
 }
 
 const GRADE_COLORS: Record<string, [number, number, number]> = {
-  A: [22, 163, 74],    // green
-  B: [202, 138, 4],    // yellow
-  C: [234, 88, 12],    // orange
-  D: [220, 38, 38],    // red
+  A: [22, 163, 74],
+  B: [202, 138, 4],
+  C: [234, 88, 12],
+  D: [220, 38, 38],
 }
 
 const GRADE_LABELS: Record<string, string> = {
@@ -26,7 +29,13 @@ const GRADE_LABELS: Record<string, string> = {
   D: 'D — Dispose',
 }
 
-/** Load an image URL as base64 via canvas (for embedding in PDF) */
+function retentionColor(pct: number): [number, number, number] {
+  if (pct >= 80) return [22, 163, 74]   // green
+  if (pct >= 50) return [202, 138, 4]   // yellow
+  if (pct >= 20) return [234, 88, 12]   // orange
+  return [220, 38, 38]                   // red
+}
+
 async function loadImageAsBase64(url: string): Promise<string | null> {
   try {
     const res = await fetch(url)
@@ -51,22 +60,19 @@ export async function generateInspectionPDF(
   const margin = 18
   let y = 0
 
-  // ── Header bar ────────────────────────────────────────────────────────────
-  doc.setFillColor(232, 81, 42) // #E8512A
+  // ── Header bar ──────────────────────────────────────────────────────────────
+  doc.setFillColor(232, 81, 42)
   doc.rect(0, 0, W, 28, 'F')
 
-  // Logo text
   doc.setTextColor(255, 255, 255)
   doc.setFontSize(22)
   doc.setFont('helvetica', 'bold')
   doc.text('Recovo', margin, 17)
 
-  // Tagline
   doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
   doc.text('Returns recovered. Value restored.', margin, 23)
 
-  // Report label top right
   doc.setFontSize(9)
   doc.setFont('helvetica', 'bold')
   doc.text('INSPECTION REPORT', W - margin, 13, { align: 'right' })
@@ -82,8 +88,7 @@ export async function generateInspectionPDF(
 
   y = 38
 
-  // ── Tracking number + grade ───────────────────────────────────────────────
-  // Tracking block
+  // ── Tracking + grade badge ───────────────────────────────────────────────
   doc.setTextColor(100, 100, 100)
   doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
@@ -94,7 +99,6 @@ export async function generateInspectionPDF(
   doc.setFont('helvetica', 'bold')
   doc.text(item.tracking_number, margin, y)
 
-  // Grade badge (right side)
   const gradeColor = GRADE_COLORS[item.grade] ?? [100, 100, 100]
   doc.setFillColor(...gradeColor)
   doc.roundedRect(W - margin - 42, y - 14, 42, 16, 3, 3, 'F')
@@ -105,13 +109,12 @@ export async function generateInspectionPDF(
 
   y += 10
 
-  // Divider
   doc.setDrawColor(230, 230, 230)
   doc.setLineWidth(0.3)
   doc.line(margin, y, W - margin, y)
   y += 8
 
-  // ── Info grid ─────────────────────────────────────────────────────────────
+  // ── Info grid ────────────────────────────────────────────────────────────
   const col2 = W / 2 + 4
 
   function infoField(label: string, value: string, x: number, yPos: number) {
@@ -135,10 +138,112 @@ export async function generateInspectionPDF(
   }), col2, y)
   y += 14
 
-  // Divider
   doc.setDrawColor(230, 230, 230)
   doc.line(margin, y, W - margin, y)
   y += 8
+
+  // ── Value Analysis ────────────────────────────────────────────────────────
+  const hasValue = item.value_retention !== null ||
+    (item.retail_price_eur !== null && item.resale_price_eur !== null)
+
+  if (hasValue) {
+    doc.setTextColor(130, 130, 130)
+    doc.setFontSize(7.5)
+    doc.setFont('helvetica', 'normal')
+    doc.text('VALUE ANALYSIS', margin, y)
+    y += 6
+
+    // Light background box
+    doc.setFillColor(250, 250, 250)
+    doc.setDrawColor(230, 230, 230)
+    doc.setLineWidth(0.3)
+    doc.roundedRect(margin, y, W - margin * 2, 28, 3, 3, 'FD')
+
+    const boxY = y + 7
+    const third = (W - margin * 2) / 3
+    const c1 = margin + third * 0.5
+    const c2 = margin + third * 1.5
+    const c3 = margin + third * 2.5
+
+    if (item.retail_price_eur !== null && item.resale_price_eur !== null) {
+      const loss = item.retail_price_eur - item.resale_price_eur
+
+      // New retail
+      doc.setTextColor(130, 130, 130)
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'normal')
+      doc.text('NEW RETAIL', c1, boxY - 2, { align: 'center' })
+      doc.setTextColor(26, 26, 26)
+      doc.setFontSize(13)
+      doc.setFont('helvetica', 'bold')
+      doc.text(`€${item.retail_price_eur}`, c1, boxY + 5, { align: 'center' })
+
+      // Arrow
+      doc.setTextColor(180, 180, 180)
+      doc.setFontSize(14)
+      doc.text('→', margin + third, boxY + 4, { align: 'center' })
+
+      // Resale value
+      const rc = retentionColor(item.value_retention ?? 50)
+      doc.setTextColor(130, 130, 130)
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'normal')
+      doc.text('EST. RESALE', c2, boxY - 2, { align: 'center' })
+      doc.setTextColor(...rc)
+      doc.setFontSize(13)
+      doc.setFont('helvetica', 'bold')
+      doc.text(`€${item.resale_price_eur}`, c2, boxY + 5, { align: 'center' })
+
+      // Value loss
+      doc.setTextColor(130, 130, 130)
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'normal')
+      doc.text('VALUE LOSS', c3, boxY - 2, { align: 'center' })
+      doc.setTextColor(220, 38, 38)
+      doc.setFontSize(13)
+      doc.setFont('helvetica', 'bold')
+      doc.text(`-€${loss}`, c3, boxY + 5, { align: 'center' })
+
+      // Retention pct below
+      if (item.value_retention !== null) {
+        doc.setTextColor(130, 130, 130)
+        doc.setFontSize(7)
+        doc.setFont('helvetica', 'normal')
+        doc.text(`${item.value_retention}% of original value retained`, c2, boxY + 13, { align: 'center' })
+      }
+
+    } else if (item.value_retention !== null) {
+      // Only percentage available
+      doc.setTextColor(26, 26, 26)
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.text(`Value retention: ${item.value_retention}%`, margin + 6, boxY + 4)
+    }
+
+    y += 36
+
+    // Retention progress bar
+    if (item.value_retention !== null) {
+      const barW = W - margin * 2
+      const barH = 3.5
+
+      // Background
+      doc.setFillColor(230, 230, 230)
+      doc.roundedRect(margin, y, barW, barH, 1.5, 1.5, 'F')
+
+      // Fill
+      const rc = retentionColor(item.value_retention)
+      doc.setFillColor(...rc)
+      const fillW = Math.max(4, (item.value_retention / 100) * barW)
+      doc.roundedRect(margin, y, fillW, barH, 1.5, 1.5, 'F')
+
+      y += 9
+    }
+
+    doc.setDrawColor(230, 230, 230)
+    doc.line(margin, y, W - margin, y)
+    y += 8
+  }
 
   // ── AI Condition Report ───────────────────────────────────────────────────
   if (item.ai_description) {
@@ -172,7 +277,7 @@ export async function generateInspectionPDF(
     y += lines.length * 5 + 6
   }
 
-  // Divider before photos
+  // ── Photos ────────────────────────────────────────────────────────────────
   if (item.photos && item.photos.length > 0) {
     doc.setDrawColor(230, 230, 230)
     doc.line(margin, y, W - margin, y)
@@ -184,7 +289,6 @@ export async function generateInspectionPDF(
     doc.text(`PHOTOS (${item.photos.length})`, margin, y)
     y += 6
 
-    // ── Embed photos ─────────────────────────────────────────────────────────
     const photoSize = 52
     const gap = 5
     const photosPerRow = 3
@@ -194,25 +298,18 @@ export async function generateInspectionPDF(
     for (const photoUrl of item.photos.slice(0, 6)) {
       const b64 = await loadImageAsBase64(photoUrl)
       if (b64) {
-        // New row if needed
         if (photoCount > 0 && photoCount % photosPerRow === 0) {
           y += photoSize + gap
           px = margin
         }
-
-        // Check page overflow
         if (y + photoSize > 270) {
           doc.addPage()
           y = 20
           px = margin
         }
-
         try {
           doc.addImage(b64, 'JPEG', px, y, photoSize, photoSize)
-        } catch {
-          // Skip if image can't be embedded
-        }
-
+        } catch { /* skip */ }
         px += photoSize + gap
         photoCount++
       }
