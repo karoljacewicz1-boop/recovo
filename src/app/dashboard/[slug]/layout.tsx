@@ -1,6 +1,7 @@
 'use client'
 
-import { useParams, usePathname } from 'next/navigation'
+import { useParams, usePathname, useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import Link from 'next/link'
 
 const NAV = [
@@ -13,8 +14,17 @@ const NAV = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const params = useParams()
   const pathname = usePathname()
+  const router = useRouter()
   const slug = params.slug as string
   const isDemo = slug === 'demo-brand'
+
+  useEffect(() => {
+    const isLoginPage = pathname.endsWith('/login')
+    const isAuthed = localStorage.getItem(`recovo_auth_${slug}`) === '1'
+    if (!isAuthed && !isLoginPage) {
+      router.replace(`/dashboard/${slug}/login`)
+    }
+  }, [slug, pathname, router])
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
