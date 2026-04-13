@@ -97,7 +97,7 @@ export const translations = {
         },
         {
           name: 'Full Processing',
-          price: '14 PLN', unit: '/ item', badge: 'Most popular',
+          price: 'From 6.50 PLN', unit: '/ item', badge: 'Most popular',
           features: [
             'Everything in Grading & Inspection',
             'Relabeling (your labels or FNSKU)',
@@ -297,7 +297,7 @@ export const translations = {
         },
         {
           name: 'Vollbearbeitung',
-          price: '14 PLN', unit: '/ Artikel', badge: 'Beliebteste Option',
+          price: 'Ab 6,50 PLN', unit: '/ Artikel', badge: 'Beliebteste Option',
           features: [
             'Alles aus Bewertung & Inspektion',
             'Umetikettierung (Ihre Etiketten oder FNSKU)',
@@ -497,7 +497,7 @@ export const translations = {
         },
         {
           name: 'Pełne przetwarzanie',
-          price: '14 PLN', unit: '/ sztuka', badge: 'Najpopularniejsze',
+          price: 'Od 6,50 PLN', unit: '/ sztuka', badge: 'Najpopularniejsze',
           features: [
             'Wszystko z Oceny & Inspekcji',
             'Relabelowanie (Twoje etykiety lub FNSKU)',
