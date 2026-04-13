@@ -46,7 +46,17 @@ export default function Services() {
                 </h3>
 
                 <div className="mb-6">
-                  <span className="text-4xl font-extrabold">{plan.price}</span>
+                  {(() => {
+                    const match = plan.price.match(/^(Od|From|Ab)\s+(.+)$/)
+                    return match ? (
+                      <>
+                        <span className="text-sm font-semibold mr-1">{match[1]}</span>
+                        <span className="text-4xl font-extrabold">{match[2]}</span>
+                      </>
+                    ) : (
+                      <span className="text-4xl font-extrabold">{plan.price}</span>
+                    )
+                  })()}
                   <span
                     className={`text-sm ml-1 ${
                       isHighlight ? 'text-white/70' : 'text-gray-500'
