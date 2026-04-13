@@ -85,7 +85,7 @@ export const translations = {
       plans: [
         {
           name: 'Grading & Inspection',
-          price: '8 PLN', unit: '/ item', badge: null,
+          price: 'From 2.90 PLN', unit: '/ item', badge: null,
           features: [
             'Receive & unbox',
             '5-photo documentation per item',
@@ -285,7 +285,7 @@ export const translations = {
       plans: [
         {
           name: 'Bewertung & Inspektion',
-          price: '8 PLN', unit: '/ Artikel', badge: null,
+          price: 'Ab 2,90 PLN', unit: '/ Artikel', badge: null,
           features: [
             'Empfangen & auspacken',
             '5-Foto-Dokumentation pro Artikel',
@@ -485,7 +485,7 @@ export const translations = {
       plans: [
         {
           name: 'Ocena & Inspekcja',
-          price: '8 PLN', unit: '/ sztuka', badge: null,
+          price: 'Od 2,90 PLN', unit: '/ sztuka', badge: null,
           features: [
             'Odbiór i rozpakowanie',
             'Dokumentacja 5 zdjęć na produkt',
