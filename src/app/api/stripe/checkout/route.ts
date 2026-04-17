@@ -4,6 +4,10 @@ import { PLANS, PlanId } from '@/lib/plans'
 import { supabaseService, getMembershipBySlug } from '@/lib/supabaseServer'
 import { can } from '@/lib/permissions'
 
+// Force dynamic: this route depends on runtime secrets (Stripe, Supabase) that
+// aren't available during "collect page data" at build time.
+export const dynamic = 'force-dynamic'
+
 export async function POST(req: NextRequest) {
   try {
     const { slug, planId } = (await req.json()) as { slug: string; planId: PlanId }

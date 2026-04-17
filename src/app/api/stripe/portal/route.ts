@@ -3,6 +3,8 @@ import { stripe } from '@/lib/stripe'
 import { supabaseService, getMembershipBySlug } from '@/lib/supabaseServer'
 import { can } from '@/lib/permissions'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(req: NextRequest) {
   try {
     const { slug } = await req.json()
