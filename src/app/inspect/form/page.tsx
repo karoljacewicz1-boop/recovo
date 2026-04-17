@@ -73,12 +73,28 @@ function InspectionFormInner() {
   const [aiError, setAiError]               = useState('')
   const [aiRan, setAiRan]                   = useState(false)     // has AI run at least once?
 
+  // Weight
+  const [declaredWeight, setDeclaredWeight] = useState('')
+  const [receivedWeight, setReceivedWeight] = useState('')
+
   // Submit state
   const [loading, setLoading]               = useState(false)
   const [error, setError]                   = useState('')
   const [success, setSuccess]               = useState(false)
   const [workerName, setWorkerName]         = useState('')
   const fileInputRef                        = useRef<HTMLInputElement>(null)
+
+  const weightFraudAlert = (() => {
+    const declared = parseFloat(declaredWeight)
+    const received = parseFloat(receivedWeight)
+    if (!declared || !received) return null
+    const diff = declared - received
+    const pct = Math.abs(diff) / declared * 100
+    if (diff > 0 && pct > 20) return { level: 'high', msg: `Package is ${diff.toFixed(0)}g lighter than declared — possible content swap or missing items` }
+    if (diff > 0 && pct > 8)  return { level: 'medium', msg: `Package is ${diff.toFixed(0)}g lighter than declared (${pct.toFixed(0)}%) — verify contents` }
+    if (diff < 0 && pct > 20) return { level: 'medium', msg: `Package is ${Math.abs(diff).toFixed(0)}g heavier than declared — check for added items` }
+    return null
+  })()
 
   // Track last analysed photo count so we don't re-run on identical sets
   const lastAnalysedCount = useRef(0)
@@ -193,15 +209,18 @@ function InspectionFormInner() {
       }
 
       const { error: saveErr } = await supabase.from('inspections').insert([{
-        client_id:       selectedClient.id,
-        tracking_number: trackingNumber,
+        client_id:        selectedClient.id,
+        tracking_number:  trackingNumber,
         category,
         grade,
-        notes:           notes || null,
-        photos:          uploadedUrls,
-        worker_name:     workerName,
-        ai_description:  aiDescription || null,
-        value_retention: aiValueRetention ?? null,
+        notes:            notes || null,
+        photos:           uploadedUrls,
+        worker_name:      workerName,
+        ai_description:   aiDescription || null,
+        value_retention:  aiValueRetention ?? null,
+        package_weight_g: receivedWeight ? parseFloat(receivedWeight) : null,
+        product_weight_g: declaredWeight ? parseFloat(declaredWeight) : null,
+        fraud_flag:       weightFraudAlert?.level ?? null,
       }])
       if (saveErr) throw saveErr
 
@@ -288,7 +307,51 @@ function InspectionFormInner() {
           </div>
         </div>
 
-        {/* ── 3. Photos (FIRST — triggers AI) ── */}
+        {/* ── 3. Weight ── */}
+        <div>
+          <p className="text-zinc-400 text-xs uppercase tracking-widest mb-3 font-semibold">
+            Weight
+            <span className="ml-2 normal-case font-normal text-zinc-600">fraud detection</span>
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-1.5">Declared by producer (g)</p>
+              <input
+                type="number"
+                inputMode="numeric"
+                placeholder="e.g. 200"
+                value={declaredWeight}
+                onChange={(e) => setDeclaredWeight(e.target.value)}
+                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-600 text-sm focus:outline-none focus:border-[#E8512A]"
+              />
+            </div>
+            <div>
+              <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-1.5">Received package (g)</p>
+              <input
+                type="number"
+                inputMode="numeric"
+                placeholder="e.g. 180"
+                value={receivedWeight}
+                onChange={(e) => setReceivedWeight(e.target.value)}
+                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-600 text-sm focus:outline-none focus:border-[#E8512A]"
+              />
+            </div>
+          </div>
+          {weightFraudAlert && (
+            <div className={`mt-3 flex items-start gap-2 rounded-xl px-4 py-3 border text-sm font-semibold ${
+              weightFraudAlert.level === 'high'
+                ? 'bg-red-900/30 border-red-700 text-red-400'
+                : 'bg-yellow-900/20 border-yellow-700 text-yellow-400'
+            }`}>
+              <span className="text-lg leading-none mt-0.5">
+                {weightFraudAlert.level === 'high' ? '⚠️' : '⚡'}
+              </span>
+              {weightFraudAlert.msg}
+            </div>
+          )}
+        </div>
+
+        {/* ── 4. Photos (FIRST — triggers AI) ── */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <p className="text-zinc-400 text-xs uppercase tracking-widest font-semibold">

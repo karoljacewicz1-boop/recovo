@@ -29,30 +29,41 @@ export async function POST(req: NextRequest) {
 
 Analyse the product in the photo(s) and return a single JSON object — no markdown, no explanation, only raw JSON.
 
-STEP 1 — Identify the product as precisely as possible:
-- Brand, product name/model, colorway, size if visible
-- If brand/model is unclear, describe the product type and visible details
+STEP 1 — Identify the product precisely:
+- Brand, model, type, size if visible
+- If unclear, describe the product type in detail
 
-STEP 2 — Assess condition:
-  A = As new — no defects, resellable at full price
-  B = Minor defects — small scuffs/marks/creases, sellable with small discount
-  C = Damaged — visible tears/breaks/heavy soiling, needs repair or steep discount
-  D = Dispose — beyond repair, not resellable
+STEP 2 — Assess condition STRICTLY based on real secondhand market realities:
+  A = As new — no visible use, tags on or packaging intact, full resale value
+  B = Light use — minor cosmetic marks only, clearly sellable with small discount (e.g. clean sneakers worn 2-3x, lightly worn clothing with no damage)
+  C = Heavy use — significant wear, soiling, creasing or damage; steep discount needed; some buyers will still buy
+  D = Not resellable — ANY of these apply:
+      • Safety/work footwear (PPE) with visible use — liability risk, buyers won't buy used PPE
+      • Structural damage (broken sole, torn seam, broken zipper that can't be fixed cheaply)
+      • Heavy soiling that professional cleaning cannot fix
+      • Electronics with cracked screens or non-functional parts
+      • Item that a reasonable secondhand buyer would reject even at 70% discount
+      Be strict: if in doubt between C and D, choose D.
 
-STEP 3 — Estimate price reduction needed to sell:
-- Based on the defects and condition, estimate by how many percent the seller needs to reduce the original price to still sell this item on the secondhand market
-- Think practically: what discount would a buyer expect given what you see?
-- Grade A: 0–10% reduction, Grade B: 15–35%, Grade C: 40–65%, Grade D: 70–100%
-- Give a specific number, not a range
+IMPORTANT market realities to apply:
+- Used safety shoes/boots (S1, S2, S3, steel toe, composite toe) = Grade D by default unless literally unworn — buyers know the protective cap may be compromised from impacts
+- Heavily creased leather with dirt-embedded soles = Grade C or D, not B
+- Clothing with stains or broken fasteners = Grade C minimum
+- Electronics with any functional issue = Grade C or D
+
+STEP 3 — Estimate price reduction needed to sell (only if grade A/B/C):
+- What % discount vs original retail would a real secondhand buyer expect?
+- Be realistic: Grade B = 15–35%, Grade C = 45–70%
+- Grade D = item should not be listed for sale (set price_reduction_pct to 100)
 
 Required JSON keys:
 - "grade": "A", "B", "C", or "D"
-- "product_name": identified product name (e.g. "Nike Air Max 90 White/Grey UK8", "Levi's 501 W32/L30 Indigo"). If unclear, describe type.
-- "condition_summary": one sentence — overall condition
-- "defects": array of strings — each visible defect precisely described (empty array if none)
-- "resale_recommendation": one sentence — concrete action (e.g. "Ready for immediate resale", "Light cleaning recommended before listing")
-- "price_reduction_pct": integer 0–100 — estimated % price reduction needed to sell vs original price
-- "reduction_reason": short phrase — why this discount is needed (or "No discount needed" for grade A)
+- "product_name": identified product (e.g. "Safety work boot, black leather, S1P class"). If unclear, describe type.
+- "condition_summary": one factual sentence — what you see
+- "defects": array of strings — each visible defect precisely (empty array if none)
+- "resale_recommendation": one sentence — honest recommendation (e.g. "Not suitable for resale — route to textile recycling", "Ready for immediate resale", "Deep clean required before listing")
+- "price_reduction_pct": integer 0–100
+- "reduction_reason": short phrase explaining the discount (or "Not resellable" for grade D)
 - "confidence": "high", "medium", or "low"
 
 Category hint: ${category || 'unknown'}

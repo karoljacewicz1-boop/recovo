@@ -1,10 +1,10 @@
 import { LanguageProvider } from '@/lib/LanguageContext'
 import Navbar from '@/components/Navbar'
 import Hero from '@/components/Hero'
-import TrustBar from '@/components/TrustBar'
-import WhoWeServe from '@/components/WhoWeServe'
+import Pillars from '@/components/Pillars'
+import UseCases from '@/components/UseCases'
+import RecommerceCallout from '@/components/RecommerceCallout'
 import HowItWorks from '@/components/HowItWorks'
-import Services from '@/components/Services'
 import Calculator from '@/components/Calculator'
 import Testimonials from '@/components/Testimonials'
 import ContactForm from '@/components/ContactForm'
@@ -16,10 +16,10 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
-        <TrustBar />
-        <WhoWeServe />
+        <Pillars />
+        <UseCases />
+        <RecommerceCallout />
         <HowItWorks />
-        <Services />
         <Calculator />
         <Testimonials />
         <ContactForm />
