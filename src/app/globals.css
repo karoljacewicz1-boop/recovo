@@ -46,14 +46,26 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Eyebrow label — UPPERCASE mono, confident tracking. */
-.label {
-  font-family: 'Geist Mono', ui-monospace, monospace;
-  font-size: 0.6875rem;
+/* Eyebrow label — small semibold sans, modest tracking. Friendly, not
+ * forensic. Use `.mono` or `.tabular` only where numbers actually live. */
+.eyebrow {
+  font-family: 'Geist', system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
   line-height: 1;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
+  letter-spacing: 0.02em;
+  color: var(--accent);
+}
+
+/* Backwards-compatible alias — older components still use .label. */
+.label {
+  font-family: 'Geist', system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  text-transform: none;
 }
 
 /* Section rule — single hairline, full content width. */

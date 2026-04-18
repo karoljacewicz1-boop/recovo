@@ -57,11 +57,15 @@ const config: Config = {
         'display-xl': ['6rem',    { lineHeight: '0.98', letterSpacing: '-0.035em' }],
       },
       borderRadius: {
-        // Engineered, not cozy. No 8px universal.
-        DEFAULT: '2px',
-        sm: '2px',
-        md: '4px',
-        lg: '6px',
+        // Warm but not mushy. Vary by element size so it doesn't feel
+        // like the AI-default "everything is 8px" look.
+        DEFAULT: '10px',
+        xs: '4px',
+        sm: '6px',
+        md: '10px',
+        lg: '14px',
+        xl: '20px',
+        '2xl': '28px',
         pill: '9999px',
       },
       spacing: {
@@ -86,6 +90,13 @@ const config: Config = {
       },
       maxWidth: {
         content: '1280px',
+      },
+      boxShadow: {
+        // Warm, low-contrast shadows — no glossy pillow.
+        card: '0 1px 2px oklch(20% 0.02 60 / 0.04), 0 8px 24px -12px oklch(20% 0.02 60 / 0.12)',
+        'card-hover':
+          '0 2px 4px oklch(20% 0.02 60 / 0.06), 0 16px 40px -16px oklch(20% 0.02 60 / 0.18)',
+        inset: 'inset 0 1px 0 oklch(100% 0 0 / 0.6)',
       },
     },
   },

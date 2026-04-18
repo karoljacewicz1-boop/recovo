@@ -5,9 +5,8 @@ import Link from 'next/link'
 import { useLang } from '@/lib/LanguageContext'
 
 /**
- * Footer — carbon section, runs like an operator's terminal. Newsletter
- * converted into an "uptime" strip + email signup. Columns render as a
- * dense data table rather than four equal stacks.
+ * Footer — warm carbon section. Newsletter card, friendly columns,
+ * rounded social buttons. No uptime strip, no column indexes.
  */
 export default function Footer() {
   const { t } = useLang()
@@ -25,33 +24,11 @@ export default function Footer() {
 
   return (
     <footer className="relative bg-carbon text-carbon-ink">
-      {/* Status strip — "system online" operator vibe */}
-      <div className="border-b border-carbon-line">
-        <div className="max-w-content mx-auto px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 animate-ping" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
-            </span>
-            <span className="mono text-[10px] uppercase tracking-[0.14em] text-carbon-ink/70">
-              recovo · system ops
-            </span>
-            <span className="mono text-[10px] tabular-nums text-carbon-ink/50 hidden sm:inline">
-              uptime 99.98% · 30d
-            </span>
-          </div>
-          <span className="mono text-[10px] uppercase tracking-[0.14em] text-carbon-ink/50 tabular-nums">
-            warsaw · pl · +01:00
-          </span>
-        </div>
-      </div>
-
       <div className="max-w-content mx-auto px-6 py-3xl">
-        {/* Newsletter block — no glass, sharp edges */}
+        {/* Newsletter block */}
         <div className="grid md:grid-cols-[1.2fr_1fr] gap-xl pb-2xl border-b border-carbon-line">
           <div>
-            <p className="label !text-accent mb-4">01 · subscribe</p>
-            <p className="text-2xl md:text-4xl font-bold text-carbon-ink leading-[1.05] tracking-[-0.025em] mb-md max-w-lg">
+            <p className="text-2xl md:text-3xl font-bold text-carbon-ink leading-[1.15] tracking-[-0.02em] mb-sm max-w-lg">
               {f.newsletterTitle}
             </p>
             <p className="text-sm text-carbon-ink/60 max-w-md leading-[1.6]">
@@ -60,31 +37,29 @@ export default function Footer() {
           </div>
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col justify-end gap-3"
+            className="flex flex-col justify-end gap-2"
           >
-            <div className="flex">
+            <div className="flex gap-2">
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={f.newsletterPh}
-                className="flex-1 bg-transparent border border-carbon-line text-carbon-ink placeholder:text-carbon-ink/40 px-4 py-3 text-sm focus:outline-none focus:border-accent transition-colors duration-micro ease-emil"
+                className="flex-1 bg-carbon-soft/40 border border-carbon-line text-carbon-ink placeholder:text-carbon-ink/40 px-4 py-3 rounded-md text-sm focus:outline-none focus:border-accent transition-colors duration-micro ease-emil"
               />
               <button
                 type="submit"
-                className="group inline-flex items-center gap-2 bg-accent text-carbon-ink text-sm font-medium px-5 py-3 hover:bg-accent-deep transition-colors duration-micro ease-emil whitespace-nowrap"
+                className="group inline-flex items-center gap-1.5 bg-accent hover:bg-accent-deep text-carbon-ink text-sm font-semibold px-5 py-3 rounded-md transition-colors duration-micro ease-emil whitespace-nowrap"
               >
                 {f.newsletterCta}
-                <span className="mono transition-transform duration-micro ease-emil group-hover:translate-x-0.5">
+                <span className="transition-transform duration-micro ease-emil group-hover:translate-x-0.5">
                   →
                 </span>
               </button>
             </div>
             {submitted && (
-              <p className="mono text-[11px] tabular-nums text-accent">
-                [✓] subscribed · {new Date().toLocaleTimeString()}
-              </p>
+              <p className="text-xs text-accent">✓ Zapisano. Dzięki!</p>
             )}
           </form>
         </div>
@@ -93,13 +68,10 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-lg md:gap-xl py-2xl">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <Link
-              href="/"
-              className="flex items-center gap-2 mb-md group"
-            >
+            <Link href="/" className="flex items-center gap-2 mb-md group">
               <span
                 aria-hidden
-                className="inline-block w-2.5 h-2.5 bg-accent transition-transform duration-micro ease-emil group-hover:rotate-45"
+                className="inline-block w-2.5 h-2.5 rounded-sm bg-accent transition-transform duration-micro ease-emil group-hover:rotate-45"
               />
               <span className="text-lg font-bold tracking-[-0.02em] text-carbon-ink">
                 Recovo
@@ -110,37 +82,19 @@ export default function Footer() {
             </p>
             <div className="flex gap-2">
               <SocialBtn href="https://linkedin.com" label="LinkedIn">
-                <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden
-                >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
                   <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.063 2.063 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
                 </svg>
               </SocialBtn>
               <SocialBtn href="mailto:hello@recovo.com.pl" label="Email">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  />
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </SocialBtn>
             </div>
           </div>
 
-          {/* Product */}
           <FooterCol
-            index="02"
             title={f.product}
             links={[
               { label: 'Recovo Inspect', href: '/platforma' },
@@ -151,7 +105,6 @@ export default function Footer() {
             ]}
           />
           <FooterCol
-            index="03"
             title={f.forWhom}
             links={[
               { label: f.forWhomLinks.brands, href: '/dla-marek' },
@@ -160,7 +113,6 @@ export default function Footer() {
             ]}
           />
           <FooterCol
-            index="04"
             title={f.resources}
             links={[
               { label: f.resourcesLinks.blog, href: '/blog' },
@@ -170,7 +122,6 @@ export default function Footer() {
             ]}
           />
           <FooterCol
-            index="05"
             title={f.company}
             links={[
               { label: f.companyLinks.about, href: '/o-nas' },
@@ -183,23 +134,15 @@ export default function Footer() {
         {/* Bottom legal strip */}
         <div className="border-t border-carbon-line pt-lg flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-xs text-carbon-ink/50">
           <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-6">
-            <span className="mono tabular-nums">{f.copyright}</span>
+            <span>{f.copyright}</span>
             <span className="hidden md:inline text-carbon-ink/30">·</span>
-            <span className="mono text-[10px] uppercase tracking-[0.12em]">
-              {f.address}
-            </span>
+            <span>{f.address}</span>
           </div>
           <div className="flex gap-6">
-            <Link
-              href="/privacy"
-              className="hover:text-carbon-ink transition-colors duration-micro ease-emil"
-            >
+            <Link href="/privacy" className="hover:text-carbon-ink transition-colors duration-micro ease-emil">
               {f.privacy}
             </Link>
-            <Link
-              href="/terms"
-              className="hover:text-carbon-ink transition-colors duration-micro ease-emil"
-            >
+            <Link href="/terms" className="hover:text-carbon-ink transition-colors duration-micro ease-emil">
               {f.terms}
             </Link>
           </div>
@@ -210,31 +153,25 @@ export default function Footer() {
 }
 
 function FooterCol({
-  index,
   title,
   links,
 }: {
-  index: string
   title: string
   links: { label: string; href: string }[]
 }) {
   return (
     <div>
-      <div className="flex items-center gap-2 mb-md">
-        <span className="mono text-[10px] tabular-nums text-accent">{index}</span>
-        <p className="label !text-carbon-ink">{title}</p>
-      </div>
+      <p className="text-xs font-semibold uppercase tracking-wider text-carbon-ink mb-md">
+        {title}
+      </p>
       <ul className="space-y-2 text-sm">
         {links.map((l) => (
           <li key={l.href + l.label}>
             <Link
               href={l.href}
-              className="group inline-flex items-center gap-1.5 text-carbon-ink/60 hover:text-carbon-ink transition-colors duration-micro ease-emil"
+              className="text-carbon-ink/60 hover:text-carbon-ink transition-colors duration-micro ease-emil"
             >
-              <span>{l.label}</span>
-              <span className="mono text-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-micro ease-emil">
-                →
-              </span>
+              {l.label}
             </Link>
           </li>
         ))}
@@ -258,7 +195,7 @@ function SocialBtn({
       target="_blank"
       rel="noopener noreferrer"
       aria-label={label}
-      className="w-9 h-9 flex items-center justify-center border border-carbon-line text-carbon-ink/70 hover:text-accent hover:border-accent transition-colors duration-micro ease-emil"
+      className="w-9 h-9 flex items-center justify-center rounded-md bg-carbon-soft/40 border border-carbon-line text-carbon-ink/70 hover:text-accent hover:border-accent transition-colors duration-micro ease-emil"
     >
       {children}
     </a>

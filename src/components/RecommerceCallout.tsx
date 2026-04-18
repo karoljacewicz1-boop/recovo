@@ -4,8 +4,9 @@ import Link from 'next/link'
 import { useLang } from '@/lib/LanguageContext'
 
 /**
- * RecommerceCallout — the "dark section" of the page. Carbon bg, mono
- * typography, data-forward callouts. Steps are a numbered track.
+ * RecommerceCallout — the dark section. Carbon background, rounded
+ * cards, friendly numbered steps. No diagonal hatching, no terminal
+ * labels.
  */
 export default function RecommerceCallout() {
   const { t } = useLang()
@@ -16,13 +17,13 @@ export default function RecommerceCallout() {
       id="recommerce"
       className="relative py-3xl bg-carbon text-carbon-ink overflow-hidden"
     >
-      {/* Diagonal engineered pattern */}
+      {/* Soft accent glow */}
       <div
         aria-hidden
-        className="absolute inset-0 pointer-events-none opacity-[0.06]"
+        className="absolute -top-40 right-0 w-[600px] h-[600px] rounded-full pointer-events-none opacity-[0.15]"
         style={{
-          backgroundImage:
-            'repeating-linear-gradient(45deg, oklch(96% 0.005 80) 0, oklch(96% 0.005 80) 1px, transparent 1px, transparent 12px)',
+          background:
+            'radial-gradient(circle at center, oklch(62% 0.185 34) 0%, transparent 60%)',
         }}
       />
 
@@ -30,33 +31,39 @@ export default function RecommerceCallout() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-xl">
           {/* LEFT */}
           <div className="lg:col-span-7">
-            <div className="flex items-center gap-2.5 mb-xl">
-              <span className="w-2 h-2 rounded-full bg-accent" />
-              <span className="label !text-accent">{r.eyebrow}</span>
-              <span className="h-px w-10 bg-carbon-line" />
-              <span className="label !text-carbon-ink/50">channel · sales</span>
+            <div className="inline-flex items-center gap-2 bg-accent/15 text-accent text-xs font-semibold px-3 py-1.5 rounded-pill mb-lg">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+              {r.eyebrow}
             </div>
 
-            <h2 className="text-display-sm md:text-display lg:text-display-lg font-bold text-carbon-ink tracking-[-0.03em] leading-[1.02] mb-lg">
+            <h2 className="text-display-sm md:text-display lg:text-display-lg font-bold text-carbon-ink tracking-[-0.03em] leading-[1.05] mb-lg">
               {r.title}
             </h2>
             <p className="text-base md:text-lg text-carbon-ink/70 leading-[1.6] mb-xl max-w-xl">
               {r.sub}
             </p>
 
-            {/* Why-items row */}
-            <div className="grid sm:grid-cols-3 gap-0 border-t border-carbon-line mb-xl">
-              {r.whyItems.map((item, i) => (
+            {/* Why-items */}
+            <div className="grid sm:grid-cols-3 gap-4 mb-xl">
+              {r.whyItems.map((item) => (
                 <div
                   key={item.title}
-                  className={`py-lg ${
-                    i < r.whyItems.length - 1 ? 'sm:border-r border-carbon-line sm:pr-lg' : ''
-                  } ${i > 0 ? 'sm:pl-lg' : ''}`}
+                  className="p-lg rounded-xl bg-carbon-soft/60 border border-carbon-line"
                 >
-                  <p className="mono text-[10px] tabular-nums text-accent mb-2">
-                    {String(i + 1).padStart(2, '0')} / 03
-                  </p>
-                  <p className="text-sm font-semibold text-carbon-ink mb-1.5">
+                  <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center mb-md">
+                    <svg className="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      {item.icon === 'clock' && (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      )}
+                      {item.icon === 'space' && (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                      )}
+                      {item.icon === 'scale' && (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      )}
+                    </svg>
+                  </div>
+                  <p className="text-sm font-semibold text-carbon-ink mb-1">
                     {item.title}
                   </p>
                   <p className="text-xs text-carbon-ink/60 leading-[1.55]">
@@ -68,12 +75,10 @@ export default function RecommerceCallout() {
 
             <Link
               href="/recommerce"
-              className="group inline-flex items-center gap-2 text-accent hover:text-carbon-ink font-medium transition-colors duration-micro ease-emil"
+              className="group inline-flex items-center gap-2 text-accent hover:text-carbon-ink font-semibold transition-colors duration-micro ease-emil"
             >
-              <span className="border-b border-accent group-hover:border-carbon-ink">
-                Zobacz jak działa recommerce
-              </span>
-              <span className="mono transition-transform duration-micro ease-emil group-hover:translate-x-0.5">
+              Zobacz jak działa recommerce
+              <span className="transition-transform duration-micro ease-emil group-hover:translate-x-0.5">
                 →
               </span>
             </Link>
@@ -81,30 +86,22 @@ export default function RecommerceCallout() {
 
           {/* RIGHT — step list */}
           <div className="lg:col-span-5">
-            <div className="border border-carbon-line">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-carbon-line bg-carbon-soft/40">
-                <span className="mono text-[10px] uppercase tracking-[0.14em] text-carbon-ink/60">
-                  recommerce · pipeline
-                </span>
-                <span className="mono text-[10px] tabular-nums text-accent">
-                  {r.steps.length} steps
-                </span>
-              </div>
+            <div className="rounded-xl bg-carbon-soft/40 border border-carbon-line overflow-hidden">
               <ol>
                 {r.steps.map((step, idx) => (
                   <li
                     key={step.num}
-                    className="flex gap-4 px-5 py-4 border-b border-carbon-line last:border-b-0 hover:bg-carbon-soft/30 transition-colors duration-micro ease-emil"
+                    className="flex gap-4 px-5 py-4 border-b border-carbon-line last:border-b-0 hover:bg-carbon-soft/60 transition-colors duration-micro ease-emil"
                   >
                     <div className="flex-shrink-0 relative">
-                      <span className="w-8 h-8 flex items-center justify-center mono text-[12px] tabular-nums font-medium bg-accent text-carbon">
+                      <span className="w-10 h-10 flex items-center justify-center rounded-full mono text-sm font-semibold tabular-nums bg-accent text-carbon">
                         {step.num}
                       </span>
                       {idx < r.steps.length - 1 && (
-                        <span className="absolute left-1/2 -translate-x-px top-8 w-px h-[calc(100%-8px)] bg-carbon-line" />
+                        <span className="absolute left-1/2 -translate-x-px top-10 w-px h-[calc(100%-16px)] bg-carbon-line" />
                       )}
                     </div>
-                    <div className="pt-0.5 min-w-0">
+                    <div className="pt-1.5 min-w-0">
                       <p className="text-sm font-semibold text-carbon-ink mb-1">
                         {step.title}
                       </p>

@@ -3,10 +3,9 @@
 import { useLang } from '@/lib/LanguageContext'
 
 /**
- * Pillars — presented as a data sheet, not three equal cards.
- * A prominent hero pillar on the left (pillar 01) with supporting pillars
- * stacked on the right. This asymmetry breaks the "generic 3-column" rhythm
- * while keeping all three stories readable.
+ * Pillars — asymmetric: hero pillar (left, 7 cols) + two stacked
+ * supporting pillars (right, 5 cols). Rounded cards, soft surfaces,
+ * numeric metric in each footer.
  */
 export default function Pillars() {
   const { t } = useLang()
@@ -16,98 +15,81 @@ export default function Pillars() {
   return (
     <section className="relative py-3xl">
       <div className="max-w-content mx-auto px-6">
-        {/* Section header row — eyebrow + title on left, sub on right */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg mb-2xl pb-lg border-b border-border">
+        {/* Section header */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg mb-2xl">
           <div className="lg:col-span-7">
-            <p className="label mb-4">
-              <span className="text-accent mono">§.01</span> &nbsp; {p.eyebrow}
-            </p>
+            <p className="eyebrow mb-3">{p.eyebrow}</p>
             <h2 className="text-display-sm lg:text-display font-bold text-ink tracking-[-0.025em]">
               {p.title}
             </h2>
           </div>
-          <div className="lg:col-span-5 lg:pt-10">
-            <p className="text-base md:text-lg text-ink-soft leading-[1.55]">
+          <div className="lg:col-span-5 lg:pt-8">
+            <p className="text-base md:text-lg text-ink-soft leading-[1.6]">
               {p.sub}
             </p>
           </div>
         </div>
 
-        {/* Asymmetric pillar grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 border border-border">
-          {/* Hero pillar — col-span-7, darker surface */}
-          <article className="lg:col-span-7 relative p-xl lg:p-2xl bg-surface border-b lg:border-b-0 lg:border-r border-border">
-            <div className="flex items-start justify-between mb-xl">
-              <span className="mono text-[11px] tracking-[0.14em] text-accent uppercase">
-                pillar · {lead.tag}
+        {/* Asymmetric grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Hero pillar */}
+          <article className="lg:col-span-7 relative p-xl lg:p-2xl rounded-xl bg-surface border border-border">
+            <div className="flex items-center gap-2 mb-lg">
+              <span className="w-8 h-8 rounded-md bg-accent text-carbon-ink flex items-center justify-center mono text-sm font-semibold tabular-nums">
+                {lead.tag}
               </span>
-              <span className="mono text-[10px] tracking-[0.12em] text-ink-mute uppercase">
-                primary outcome
+              <span className="text-xs font-semibold uppercase tracking-wider text-ink-mute">
+                Primary outcome
               </span>
             </div>
 
-            <h3 className="text-3xl md:text-4xl font-bold text-ink leading-[1.05] tracking-[-0.02em] mb-lg max-w-md">
+            <h3 className="text-3xl md:text-4xl font-bold text-ink leading-[1.1] tracking-[-0.02em] mb-md max-w-md">
               {lead.title}
             </h3>
-
             <p className="text-ink-soft leading-[1.6] mb-2xl max-w-lg">
               {lead.desc}
             </p>
 
-            {/* Big number readout */}
+            {/* Big number + step bar */}
             <div className="flex items-end gap-lg pt-lg border-t border-border">
               <div>
-                <span className="mono tabular-nums font-medium text-ink text-5xl md:text-6xl leading-none">
+                <span className="mono tabular-nums font-semibold text-ink text-5xl md:text-6xl leading-none">
                   {lead.metric}
                 </span>
-                <p className="label mt-3">{lead.metricLabel}</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink-mute mt-3">
+                  {lead.metricLabel}
+                </p>
               </div>
               <div className="hidden md:block flex-1">
-                {/* A little visual rhythm — stepped bar */}
                 <StepBar />
               </div>
             </div>
-
-            {/* Corner mark — "operator" flourish */}
-            <span
-              aria-hidden
-              className="absolute top-0 left-0 w-3 h-3 border-t border-l border-accent"
-            />
-            <span
-              aria-hidden
-              className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-accent"
-            />
           </article>
 
-          {/* Supporting pillars — stacked */}
-          <div className="lg:col-span-5 flex flex-col">
-            {rest.map((item, i) => (
+          {/* Supporting pillars */}
+          <div className="lg:col-span-5 grid gap-4">
+            {rest.map((item) => (
               <article
                 key={item.tag}
-                className={`p-xl lg:p-2xl flex-1 flex flex-col justify-between ${
-                  i === 0 ? 'border-b border-border' : ''
-                }`}
+                className="p-xl rounded-xl bg-bg border border-border hover:shadow-card transition-shadow duration-base ease-emil flex flex-col"
               >
-                <div>
-                  <div className="flex items-center justify-between mb-md">
-                    <span className="mono text-[11px] tracking-[0.14em] text-ink-mute uppercase">
-                      pillar · {item.tag}
-                    </span>
-                    <span className="w-6 h-px bg-border" />
-                  </div>
-                  <h3 className="text-xl md:text-2xl font-bold text-ink leading-[1.15] tracking-[-0.015em] mb-3">
-                    {item.title}
-                  </h3>
-                  <p className="text-sm text-ink-soft leading-[1.6] mb-lg">
-                    {item.desc}
-                  </p>
+                <div className="flex items-center gap-2 mb-md">
+                  <span className="w-7 h-7 rounded-md bg-accent-tint text-accent flex items-center justify-center mono text-xs font-semibold tabular-nums">
+                    {item.tag}
+                  </span>
                 </div>
+                <h3 className="text-xl md:text-2xl font-bold text-ink leading-[1.2] tracking-[-0.015em] mb-2">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-ink-soft leading-[1.6] mb-lg flex-1">
+                  {item.desc}
+                </p>
 
-                <div className="flex items-baseline gap-3">
-                  <span className="mono tabular-nums font-medium text-ink text-3xl leading-none">
+                <div className="flex items-baseline gap-3 pt-md border-t border-border">
+                  <span className="mono tabular-nums font-semibold text-ink text-3xl leading-none">
                     {item.metric}
                   </span>
-                  <p className="label !normal-case !tracking-normal text-ink-mute">
+                  <p className="text-xs text-ink-mute">
                     {item.metricLabel}
                   </p>
                 </div>
@@ -120,10 +102,6 @@ export default function Pillars() {
   )
 }
 
-/**
- * StepBar — 10 segmented bars, filled proportional to a ~70% recovery rate.
- * Purely decorative but reads as "this product deals in measurable %s."
- */
 function StepBar() {
   const filled = 7
   return (
@@ -131,7 +109,7 @@ function StepBar() {
       {Array.from({ length: 10 }).map((_, i) => (
         <span
           key={i}
-          className={`flex-1 ${i < filled ? 'bg-accent' : 'bg-border'}`}
+          className={`flex-1 rounded-xs ${i < filled ? 'bg-accent' : 'bg-border'}`}
           style={{ height: `${35 + i * 6.5}%` }}
         />
       ))}
