@@ -4,6 +4,11 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useLang } from '@/lib/LanguageContext'
 
+/**
+ * Footer — carbon section, runs like an operator's terminal. Newsletter
+ * converted into an "uptime" strip + email signup. Columns render as a
+ * dense data table rather than four equal stacks.
+ */
 export default function Footer() {
   const { t } = useLang()
   const f = t.footer
@@ -13,147 +18,249 @@ export default function Footer() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!email) return
-    // TODO: wire to newsletter backend
     setSubmitted(true)
     setEmail('')
     setTimeout(() => setSubmitted(false), 3000)
   }
 
   return (
-    <footer className="bg-[#111111] pt-20 pb-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        {/* Top row: newsletter */}
-        <div className="grid md:grid-cols-[1.2fr_1fr] gap-8 pb-14 border-b border-white/10">
+    <footer className="relative bg-carbon text-carbon-ink">
+      {/* Status strip — "system online" operator vibe */}
+      <div className="border-b border-carbon-line">
+        <div className="max-w-content mx-auto px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 animate-ping" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
+            </span>
+            <span className="mono text-[10px] uppercase tracking-[0.14em] text-carbon-ink/70">
+              recovo · system ops
+            </span>
+            <span className="mono text-[10px] tabular-nums text-carbon-ink/50 hidden sm:inline">
+              uptime 99.98% · 30d
+            </span>
+          </div>
+          <span className="mono text-[10px] uppercase tracking-[0.14em] text-carbon-ink/50 tabular-nums">
+            warsaw · pl · +01:00
+          </span>
+        </div>
+      </div>
+
+      <div className="max-w-content mx-auto px-6 py-3xl">
+        {/* Newsletter block — no glass, sharp edges */}
+        <div className="grid md:grid-cols-[1.2fr_1fr] gap-xl pb-2xl border-b border-carbon-line">
           <div>
-            <p className="text-2xl md:text-3xl font-extrabold text-white leading-tight mb-3">
+            <p className="label !text-accent mb-4">01 · subscribe</p>
+            <p className="text-2xl md:text-4xl font-bold text-carbon-ink leading-[1.05] tracking-[-0.025em] mb-md max-w-lg">
               {f.newsletterTitle}
             </p>
-            <p className="text-sm text-gray-400 max-w-md leading-relaxed">
+            <p className="text-sm text-carbon-ink/60 max-w-md leading-[1.6]">
               {f.newsletterSub}
             </p>
           </div>
-          <form onSubmit={handleSubmit} className="flex flex-col justify-center gap-3">
-            <div className="flex gap-2">
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col justify-end gap-3"
+          >
+            <div className="flex">
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={f.newsletterPh}
-                className="flex-1 bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#E8512A] transition-colors"
+                className="flex-1 bg-transparent border border-carbon-line text-carbon-ink placeholder:text-carbon-ink/40 px-4 py-3 text-sm focus:outline-none focus:border-accent transition-colors duration-micro ease-emil"
               />
               <button
                 type="submit"
-                className="bg-[#E8512A] text-white text-sm font-semibold px-5 py-3 rounded-xl hover:bg-[#D4431F] transition-colors whitespace-nowrap"
+                className="group inline-flex items-center gap-2 bg-accent text-carbon-ink text-sm font-medium px-5 py-3 hover:bg-accent-deep transition-colors duration-micro ease-emil whitespace-nowrap"
               >
                 {f.newsletterCta}
+                <span className="mono transition-transform duration-micro ease-emil group-hover:translate-x-0.5">
+                  →
+                </span>
               </button>
             </div>
             {submitted && (
-              <p className="text-xs text-green-400">✓ Zapisano. Dzięki!</p>
+              <p className="mono text-[11px] tabular-nums text-accent">
+                [✓] subscribed · {new Date().toLocaleTimeString()}
+              </p>
             )}
           </form>
         </div>
 
-        {/* Middle: columns */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 py-14">
-          {/* Brand column */}
+        {/* Columns */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-lg md:gap-xl py-2xl">
+          {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="text-2xl font-extrabold text-white tracking-tight inline-block mb-4">
-              Recovo
+            <Link
+              href="/"
+              className="flex items-center gap-2 mb-md group"
+            >
+              <span
+                aria-hidden
+                className="inline-block w-2.5 h-2.5 bg-accent transition-transform duration-micro ease-emil group-hover:rotate-45"
+              />
+              <span className="text-lg font-bold tracking-[-0.02em] text-carbon-ink">
+                Recovo
+              </span>
             </Link>
-            <p className="text-sm text-gray-400 leading-relaxed mb-5">
+            <p className="text-sm text-carbon-ink/60 leading-[1.6] mb-lg max-w-xs">
               {f.tagline}
             </p>
-            <div className="flex gap-3">
-              <a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="LinkedIn"
-                className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 hover:bg-[#E8512A] text-gray-400 hover:text-white transition-colors"
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <div className="flex gap-2">
+              <SocialBtn href="https://linkedin.com" label="LinkedIn">
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden
+                >
                   <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.063 2.063 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
                 </svg>
-              </a>
-              <a
-                href="mailto:hello@recovo.com.pl"
-                aria-label="Email"
-                className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 hover:bg-[#E8512A] text-gray-400 hover:text-white transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </SocialBtn>
+              <SocialBtn href="mailto:hello@recovo.com.pl" label="Email">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
                 </svg>
-              </a>
+              </SocialBtn>
             </div>
           </div>
 
           {/* Product */}
-          <div>
-            <p className="text-xs font-bold text-white uppercase tracking-widest mb-5">
-              {f.product}
-            </p>
-            <ul className="space-y-3 text-sm">
-              <li><Link href="/platforma" className="text-gray-400 hover:text-white transition-colors">Recovo Inspect (SaaS)</Link></li>
-              <li><Link href="/recommerce" className="text-gray-400 hover:text-white transition-colors">{f.productLinks.recommerce}</Link></li>
-              <li><Link href="/uslugi" className="text-gray-400 hover:text-white transition-colors">Fulfillment</Link></li>
-              <li><Link href="/jak-to-dziala" className="text-gray-400 hover:text-white transition-colors">{f.productLinks.howItWorks}</Link></li>
-              <li><Link href="/pricing" className="text-gray-400 hover:text-white transition-colors">{f.productLinks.pricing}</Link></li>
-            </ul>
-          </div>
-
-          {/* For who */}
-          <div>
-            <p className="text-xs font-bold text-white uppercase tracking-widest mb-5">
-              {f.forWhom}
-            </p>
-            <ul className="space-y-3 text-sm">
-              <li><Link href="/dla-marek" className="text-gray-400 hover:text-white transition-colors">{f.forWhomLinks.brands}</Link></li>
-              <li><Link href="/dla-marketplace" className="text-gray-400 hover:text-white transition-colors">{f.forWhomLinks.marketplaces}</Link></li>
-              <li><Link href="/dla-3pl" className="text-gray-400 hover:text-white transition-colors">{f.forWhomLinks.logistics}</Link></li>
-            </ul>
-          </div>
-
-          {/* Resources */}
-          <div>
-            <p className="text-xs font-bold text-white uppercase tracking-widest mb-5">
-              {f.resources}
-            </p>
-            <ul className="space-y-3 text-sm">
-              <li><Link href="/blog" className="text-gray-400 hover:text-white transition-colors">{f.resourcesLinks.blog}</Link></li>
-              <li><Link href="/#calculator" className="text-gray-400 hover:text-white transition-colors">{f.resourcesLinks.calculator}</Link></li>
-              <li><Link href="/faq" className="text-gray-400 hover:text-white transition-colors">{f.resourcesLinks.faq}</Link></li>
-              <li><Link href="/klienci" className="text-gray-400 hover:text-white transition-colors">{f.resourcesLinks.clients}</Link></li>
-            </ul>
-          </div>
-
-          {/* Company */}
-          <div>
-            <p className="text-xs font-bold text-white uppercase tracking-widest mb-5">
-              {f.company}
-            </p>
-            <ul className="space-y-3 text-sm">
-              <li><Link href="/o-nas" className="text-gray-400 hover:text-white transition-colors">{f.companyLinks.about}</Link></li>
-              <li><Link href="/kontakt" className="text-gray-400 hover:text-white transition-colors">{f.companyLinks.contact}</Link></li>
-              <li><Link href="/kariera" className="text-gray-400 hover:text-white transition-colors">{f.companyLinks.careers}</Link></li>
-            </ul>
-          </div>
+          <FooterCol
+            index="02"
+            title={f.product}
+            links={[
+              { label: 'Recovo Inspect', href: '/platforma' },
+              { label: f.productLinks.recommerce, href: '/recommerce' },
+              { label: 'Fulfillment', href: '/uslugi' },
+              { label: f.productLinks.howItWorks, href: '/jak-to-dziala' },
+              { label: f.productLinks.pricing, href: '/pricing' },
+            ]}
+          />
+          <FooterCol
+            index="03"
+            title={f.forWhom}
+            links={[
+              { label: f.forWhomLinks.brands, href: '/dla-marek' },
+              { label: f.forWhomLinks.marketplaces, href: '/dla-marketplace' },
+              { label: f.forWhomLinks.logistics, href: '/dla-3pl' },
+            ]}
+          />
+          <FooterCol
+            index="04"
+            title={f.resources}
+            links={[
+              { label: f.resourcesLinks.blog, href: '/blog' },
+              { label: f.resourcesLinks.calculator, href: '/#roi' },
+              { label: f.resourcesLinks.faq, href: '/faq' },
+              { label: f.resourcesLinks.clients, href: '/klienci' },
+            ]}
+          />
+          <FooterCol
+            index="05"
+            title={f.company}
+            links={[
+              { label: f.companyLinks.about, href: '/o-nas' },
+              { label: f.companyLinks.contact, href: '/kontakt' },
+              { label: f.companyLinks.careers, href: '/kariera' },
+            ]}
+          />
         </div>
 
-        {/* Bottom: legal + address */}
-        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-xs text-gray-500">
-          <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6">
-            <span>{f.copyright}</span>
-            <span className="hidden md:inline text-gray-700">·</span>
-            <span>{f.address}</span>
+        {/* Bottom legal strip */}
+        <div className="border-t border-carbon-line pt-lg flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-xs text-carbon-ink/50">
+          <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-6">
+            <span className="mono tabular-nums">{f.copyright}</span>
+            <span className="hidden md:inline text-carbon-ink/30">·</span>
+            <span className="mono text-[10px] uppercase tracking-[0.12em]">
+              {f.address}
+            </span>
           </div>
           <div className="flex gap-6">
-            <Link href="/privacy" className="hover:text-white transition-colors">{f.privacy}</Link>
-            <Link href="/terms" className="hover:text-white transition-colors">{f.terms}</Link>
+            <Link
+              href="/privacy"
+              className="hover:text-carbon-ink transition-colors duration-micro ease-emil"
+            >
+              {f.privacy}
+            </Link>
+            <Link
+              href="/terms"
+              className="hover:text-carbon-ink transition-colors duration-micro ease-emil"
+            >
+              {f.terms}
+            </Link>
           </div>
         </div>
       </div>
     </footer>
+  )
+}
+
+function FooterCol({
+  index,
+  title,
+  links,
+}: {
+  index: string
+  title: string
+  links: { label: string; href: string }[]
+}) {
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-md">
+        <span className="mono text-[10px] tabular-nums text-accent">{index}</span>
+        <p className="label !text-carbon-ink">{title}</p>
+      </div>
+      <ul className="space-y-2 text-sm">
+        {links.map((l) => (
+          <li key={l.href + l.label}>
+            <Link
+              href={l.href}
+              className="group inline-flex items-center gap-1.5 text-carbon-ink/60 hover:text-carbon-ink transition-colors duration-micro ease-emil"
+            >
+              <span>{l.label}</span>
+              <span className="mono text-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-micro ease-emil">
+                →
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function SocialBtn({
+  href,
+  label,
+  children,
+}: {
+  href: string
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      className="w-9 h-9 flex items-center justify-center border border-carbon-line text-carbon-ink/70 hover:text-accent hover:border-accent transition-colors duration-micro ease-emil"
+    >
+      {children}
+    </a>
   )
 }

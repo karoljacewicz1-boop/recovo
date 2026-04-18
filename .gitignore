@@ -27,6 +27,8 @@ next-env.d.ts
 # agent / tooling state
 .superpowers/
 .claude/
+.agents/
+skills-lock.json
 
 # misc
 .DS_Store
